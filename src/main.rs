@@ -9,7 +9,7 @@ struct Response {
 
 #[derive(Parser, Debug)]
 struct Args {
-    #[arg(requires_all = ["base", "quote"])]
+    #[arg(requires_all = ["base", "to"])]
     amount: Option<Decimal>,
 
     /// Исходная валюта (например, USD)
@@ -18,14 +18,14 @@ struct Args {
 
     /// Целевая валюта (например, EUR)
     #[arg(short, long)]
-    quote: Option<String>,
+    to: Option<String>,
 }
 
-async fn convert(amount: Decimal, base: &str, quote: &str) -> Decimal {
-    if base.to_lowercase() == quote.to_lowercase() {
+async fn convert(amount: Decimal, base: &str, to: &str) -> Decimal {
+    if base.to_lowercase() == to.to_lowercase() {
         return amount;
     }
-    let url = format!("https://api.frankfurter.dev/v2/rate/{}/{}", base, quote);
+    let url = format!("https://api.frankfurter.dev/v2/rate/{}/{}", base, to);
     let response = reqwest::get(&url)
         .await
         .expect("Unable to connect to server");
@@ -39,9 +39,9 @@ async fn convert(amount: Decimal, base: &str, quote: &str) -> Decimal {
 #[tokio::main]
 async fn main() {
     let args = Args::parse();
-    if let (Some(amount), Some(base), Some(quote)) = (args.amount, args.base, args.quote) {
-        let result = convert(amount, &base, &quote).await;
-        println!("{} {} = {} {}", amount, base, result, quote);
+    if let (Some(amount), Some(base), Some(to)) = (args.amount, args.base, args.to) {
+        let result = convert(amount, &base, &to).await;
+        println!("{} {} = {} {}", amount, base, result, to);
     } else {
         Args::parse_from(["app", "--help"]);
     }
